@@ -1,0 +1,512 @@
+par(mfcol=c(3,2))
+seriesPlot(SWX)
+#好看的图
+par(mfrow=c(1,1))
+seriesPlot(SPI,labels = FALSE,type = 'h',col='brown',title = FALSE,grid = FALSE,rug = FALSE)
+lines(SPI,col='orange')
+title(main = 'Swiss Performance Index')
+hgrid()
+box_()
+copyright()
+mtext('SPI',side = 3,line = 2,adj = 1.02,font = 2)
+#回撤画一�?drawdownPlot(returns(SPI,method='discrete'))
+x <- SPI
+series(x) <- lowess(x = 1:nrow(SPI), y = as.vector(SPI),
+f = 0.1)$y
+seriesPlot(x, rug = FALSE, col = "red", ylim = c(2500, 8000),
+lwd = 2)
+lines(SPI)
+#来个箱体�?boxplot(returns(SPI))
+boxPercentilePlot(returns(SWX))
+#整个直方图和密度�?histPlot(SPI.RET)
+densityPlot(SPI.RET)
+logDensityPlot(SPI.RET)
+#QQ�?set.seed(1953)
+x<-rnorm(250)
+qqnormPlot(x)
+y<-rnig(250)
+qqnigPlot(y)
+z <- rght(250)
+qqghtPlot(y)
+SPI <- SWX[, "SPI"]
+seriesPlot(SPI)
+seriesPlot(SPI,title = FALSE)
+title(main='Swiss Performance Index',xlab='',ylab = 'SPI index')
+text(as.POSIXct('2006-11-25',rev(SPI)[1],as.character(rev(SPI))[1]),font = 2)
+mtext('Source:SWX',side = 4,col='grey',adj=0,cex=0.7)
+seriesPlot(SPI,grid = FALSE,box = FALSE,rug = FALSE)
+hgrid()
+boxL()
+copyright()
+abline(h=5000,col='orange')
+seriesPlot(SPI,grid = FALSE,rug = FALSE,type='o',pch=19,las=1)
+#看点图片
+colorTable()
+colorLocator(TRUE)
+head(sort(colorMatrix()),20)
+#好看的饼�?pie(rep(1,12),col=rainbowPalette(12),xlab='rainbowPalette')
+pie(rep(1,12),col=heatPalette(12),xlab='headPalette')
+pie(rep(1,12),col=terrainPalette(12),xlab='terrainPalette')
+#资产测试
+shapiroTest<-assetsTest(LPP2005.RET[,1:3],method = 'shapiro')
+print(shapiroTest)
+assetsTest(LPP2005.RET[,1:3],method = 'energy')
+#模拟一个资�?fit <- assetsFit(LPP2005.RET[, 1:3], method = "st")
+print(fit)
+#相同资产聚类
+lppData<-LPP2005.RET
+hclustComplete<-assetsSelect(lppData,method = 'hclust')
+hclustComplete
+plot(hclustComplete,xlab='LPP2005 Assets')
+mtext('Distance Metric:Euclidean',side = 3)
+hclustWard<-assetsSelect(lppData,method = 'hclust',control = c(measure='euclidean',method='ward'))
+hclustWard
+plot(hclustWard)
+mtext('Distance Metric : Euclidean',side=3)
+kmeans<-assetsSelect(lppData,method='kmeans',control<-c(centers=2,algorithm='Hartigan-Wong'))
+sort(kmeans$cluster)
+assetsCorEigenPlot(lppData,method='kendall')
+#对资产进行排�?colnames(lppData[,1:6])
+Assets<-assetsArrange(lppData[,1:6],method = 'hclust')
+LPP2005HC<-100*lppData[,Assets]
+head(round(LPP2005HC,5))
+#资产描述分析
+lppData<-LPP2005.RET
+assetsBasicStatsPlot(lppData[,-8],title = '',description = '')
+assetsMomentsPlot(lppData[,-8],title='',description = '')
+assetsBoxPlot(lppData[,-8],title='',description='')
+#相关性图
+Assets<-assetsArrange(LPP2005.RET[,1:6],method = 'hclust')
+LPP2005HC<-100*LPP2005.RET[,Assets]
+assetsPairsPlot(LPP2005HC,pch=19,cex=0.5,col='royalblue4')
+assetsCorgramPlot(LPP2005HC,pch=19,cex=0.5)
+assetsCorgramPlot(LPP2005HC,method = 'shade',pch=19,cex=0.5)
+assetsCorTestPlot(LPP2005HC)
+assetsCorImagePlot(LPP2005HC)
+#抽取相关�?set.seed(1953)
+index<-sample(1:ncol(LPP2005HC))
+assetsCorgramPlot(LPP2005HC[,index])
+hexHist<-hexBinning(SWX.RET[,c('SBI','SPI')],bin=20)
+plot(hexHist,xlab='SBI',ylab='SPI',col=rev(greyPalette(20)))
+#投资组合
+defaultSpec<-portfolioSpec()
+cvarSpec<-portfolioSpec(
+model = list(type='CVaR',optimize='minRisk',
+estimator='covEstimator',tailRisk=list(),
+params<-list(alpha=0.05)),
+portfolio = list(weights=NULL,
+targetReturn=NULL,targetRisk=NULL,
+riskfreeRate=0,nFrontierPoints=50,
+status=0),
+optim = list(solver='solveRglpk',objective=NULL,
+params=list(),control=list(),trace=FALSE))
+print(cvarSpec)
+#修改资产模型
+mySpec<-portfolioSpec()
+getType(mySpec)
+setType(mySpec)<-'CVAR'
+getType(mySpec)
+getWeights(mySpec)
+getTargetRisk(mySpec)
+getTargetReturn(mySpec)
+setWeight(mySpec)<-c(1,1,1,1)/4
+getWeights(mySpec)
+getOptimize(mySpec)
+setTargetRisk(mySpec)<-0.3
+getWeights(mySpec)
+getTargetReturn(mySpec)
+getOptimize(mySpec)
+lppAssets<-100*LPP2005.RET[,c('SBI','SPI','LMI','MPI')]
+lppData<-portfolioData(data=lppAssets,spec = portfolioSpec())
+print(lppData)
+Data<-portfolioData(lppData)
+getData(Data)[-1]
+getStatistics(Data)
+Data<-100*LPP2005.RET[,1:3]
+Spec<-portfolioSpec()
+setTargetReturn(Spec)<-mean(Data)
+Constrains<-'LongOnly'
+defaultConstrains<-portfolioConstraints(Data,Spec,Constrains)
+print(defaultConstrains)
+longConstraints<-'LongOnly'
+portfolioConstraints(Data,Spec,longConstraints)
+shortConstrains<-'Short'
+portfolioConstraints(Data,Spec,shortConstrains)
+box.1 <- "minW[1:3] = 0.1"
+box.2 <- "maxW[c(1, 3)] = c(0.5, 0.6)"
+box.3 <- "maxW[2] = 0.4"
+boxConstraints <- c(box.1, box.2, box.3)
+portfolioConstraints(Data, Spec, boxConstraints)
+group.1 <- "eqsumW[c(\"SPI\", \"SII\")]=0.6"
+group.2 <- "minsumW[c(2, 3)]=0.2"
+group.3 <- "maxsumW[1:nAssets]=0.7"
+groupConstraints <- c(group.1, group.2, group.3)
+groupConstraints
+portfolioConstraints(Data,Spec,groupConstraints)
+budget.1 <- "minB[1:nAssets]=-Inf"
+budget.2 <- "maxB[c(1, 2:nAssets)]=c(0.5, rep(0.6, times=2))"
+budgetConstraints <- c(budget.1, budget.2)
+budgetConstraints
+portfolioConstraints(Data, Spec, budgetConstraints)
+nonlin.1 <- "listF=list(maxdd=maxdd)"
+nonlin.2 <- "minF=-0.04"
+nonlin.3 <- "maxF=0"
+nonlinConstraints <- c(nonlin.1, nonlin.2, nonlin.3)
+nonlinConstraints
+portfolioConstraints(Data,Spec,nonlinConstraints)
+#显示结构
+tgPortfolio<-tangencyPortfolio(100*LPP2005.RET[,1:6])
+str(tgPortfolio,width=65,strict.width='cut')
+print(tgPortfolio)
+#建立模型
+#step1 portfolio data
+#step2 portfolio specification
+mvSpec<-portfolioSpec()
+print(mvSpec)
+#step portfolio Constrains
+constrains<-'LongOnly'
+#计算一个模�?colnames(LPP2005.RET)
+lppData<-100*LPP2005.RET[,1:6]
+ewSpec<-portfolioSpec()
+nAssets<-ncol(lppData)
+setWeights(ewSpec)<-rep(1/nAssets,times=nAssets)
+ewPortfolio<-feasiblePortfolio(
+data=lppData,
+spec=ewSpec,
+constraints = 'LongOnly')
+print(ewPortfolio)
+#输出图形
+col=divPalette(ncol(lppData),'RdBu')
+weightsPie(ewPortfolio,radius = 0.7,col=col)
+mtext(text = 'Equally Weighted MV Portfolio',side=3,line = 1.5,font=2,cex = 0.7,adj=0)
+weightedReturnsPie(ewPortfolio,radius = 0.7,col=col)
+mtext(text = "Equally Weighted MV Portfolio", side = 3, line = 1.5,
+font = 2, cex = 0.7, adj = 0)
+covRiskBudgetsPie(ewPortfolio, radius = 0.7, col = col)
+mtext(text = "Equally Weighted MV Portfolio", side = 3, line = 1.5,
+font = 2, cex = 0.7, adj = 0)
+#整个有效前沿
+minriskSpec<-portfolioSpec()
+targetReturn<-getTargetReturn(ewPortfolio@portfolio)['mean']
+setTargetReturn(minriskSpec)<-targetReturn
+minriskPortfolio<-efficientPortfolio(
+data=lppData,
+spec = minriskSpec,
+constraints = 'longOnly')
+print(minriskPortfolio)
+col=qualiPalette(ncol(lppData),'Dark2')
+weightsPie(minriskPortfolio,radius = 0.7,col=col)
+mtext(text = 'Minimal Risk MV Portfolio',side = 3,line = 1.5,font = 2,cex = 0.7,adj = 0)
+weightedReturnsPie(minriskPortfolio, radius = 0.7, col = col)
+mtext(text = "Minimal Risk MV Portfolio", side = 3, line = 1.5,
+font = 2, cex = 0.7, adj = 0)
+covRiskBudgetsPie(minriskPortfolio, radius = 0.7, col = col)
+mtext(text = "Minimal Risk MV Portfolio", side = 3, line = 1.5,
+font = 2, cex = 0.7, adj = 0)
+globminSpec<-portfolioSpec()
+globminPortfolio<-minvariancePortfolio(
+data = lppData,
+spec = globminSpec,
+constraints='LongOnly')
+print(globminPortfolio)
+col <- seqPalette(ncol(lppData), "YlGn")
+weightsPie(globminPortfolio, box = FALSE, col = col)
+mtext(text = "Global Minimum Variance MV Portfolio", side = 3,
+line = 1.5, font = 2, cex = 0.7, adj = 0)
+weightedReturnsPie(globminPortfolio, box = FALSE, col = col)
+mtext(text = "Global Minimum Variance MV Portfolio", side = 3,
+line = 1.5, font = 2, cex = 0.7, adj = 0)
+covRiskBudgetsPie(globminPortfolio, box = FALSE, col = col)
+mtext(text = "Global Minimum Variance MV Portfolio", side = 3,
+line = 1.5, font = 2, cex = 0.7, adj = 0)
+tgSpec<-portfolioSpec()
+setRiskFreeRate(tgSpec)<-0
+tgPortfolio<-tangencyPortfolio(
+data = lppData,
+spec = tgSpec,
+constraints = 'LongOnly')
+print(tgPortfolio)
+col <- seqPalette(ncol(lppData), "BuPu")
+weightsPie(tgPortfolio, box = FALSE, col = col)
+mtext(text = "Tangency MV Portfolio", side = 3, line = 1.5,
+font = 2, cex = 0.7, adj = 0)
+weightedReturnsPie(tgPortfolio, box = FALSE, col = col)
+mtext(text = "Tangency MV Portfolio", side = 3, line = 1.5,
+font = 2, cex = 0.7, adj = 0)
+covRiskBudgetsPie(tgPortfolio, box = FALSE, col = col)
+mtext(text = "Tangency MV Portfolio", side = 3, line = 1.5,
+font = 2, cex = 0.7, adj = 0)
+#整点好看的图
+col = rampPalette(ncol(lppData), "purple2green")
+weights <- 100 * as.vector(getWeights(tgPortfolio))
+names <- as.vector(getNames(tgPortfolio))
+barplot(height = weights, names.arg = names,
+horiz = TRUE, las = 1, col = col)
+title(main = "Weights of Long-Only Tangency Portfolio",
+xlab = "Weights %")
+)
+#画有效前�?lppSpec <- portfolioSpec()
+setNFrontierPoints(lppSpec) <- 5
+longFrontier <- portfolioFrontier(lppData, lppSpec)
+print(longFrontier)
+longFrontier <- portfolioFrontier(lppData)
+plot(longFrontier)
+monteCarloPoints(object = longFrontier, mcSteps = 1000, pch = 19,
+cex = 0.5)
+par(mfrow = c(1, 1))
+set.seed(1953)
+frontierPlot(object = longFrontier, pch = 19, xlim = c(0.05, 0.85),cex=0.5)
+monteCarloPoints(object = longFrontier,mcSteps = 1000, pch = 19, cex = 0.5)
+twoAssetsLines(object = longFrontier, col = 'orange',lwd = 2)
+frontier <- frontierPoints(object = 'longFrontier')
+lines(frontier,col = 'red', lwd = 2)
+twoAssetsLines(object = longFrontier ,col= 'orange', lwd = 2)
+frontier <- frontierPoints(object = longFrontier)
+lines(frontier, col = 'red', lwd = 2)
+#无限制卖空的资产组合
+shortSpec <- portfolioSpec()
+setNFrontier(shortSpec) <-5
+setSolver(shortSpec) <- 'solveRshortExact'
+shortFrontier <- portfolioFrontier(
+data = lppData,
+spec = shortSpec,
+constraints = 'Short')
+print(shortFrontier)
+setNFrontierPoints(shortSpec)<- 20
+shortFrontier <- portfolioFrontier(data = lppData, spec = shortSpec,
+constraints = 'Short')
+tailoredFrontierPlot(object = shortFrontier, mText = 'MV portfolio Short
+Constrains',risk = 'Cov')
+weightsPlot(shortFrontier,mtext=FALSE)
+text <- 'MV Portfolio Short Constrainen Portfolio'
+mtext(text,side = 3, line = 3, font = 2, cex = 0.9)
+weightedReturnsPlot(shortFrontier,mtext=FALSE)
+covRiskBudgetsPlot(shortFrontier,mtext=FALSE)
+#BOX约束
+boxSpec <- portfolioSpec()
+setNFrontierPoints(boxSpec) <-15
+boxConstraints <- c(
+"minW[1:6]=0.1",
+"maxW[1:6]=0.5")
+boxFrontier <- portfolioFrontier(
+data = lppData,
+spec = boxSpec,
+constraints = boxConstraints)
+print(boxFrontier)
+setNFrontierPoints(boxSpec) <- 25
+boxFrontier <- portfolioFrontier(data = lppData, spec = boxSpec,
+constraints = boxConstraints)
+tailoredFrontierPlot(object = boxFrontier, mText = "MV Portfolio - Box
+Constraints",
+risk = "Cov")
+weightsPlot(boxFrontier)
+text <- "MV Portfolio - Box Constrained Portfolio"
+mtext(text, side = 3, line = 3, font = 2, cex = 0.9)
+weightedReturnsPlot(boxFrontier)
+covRiskBudgetsPlot(boxFrontier)
+#组别约束的投资组�?groupSpec <- portfolioSpec()
+setNFrontierPoints(groupSpec) <- 7
+groupConstraints <- c("minsumW[c(1,4)]=0.3",
+"maxsumW[c(2,5)]=0.5")
+groupFrontier <- portfolioFrontier(
+data = lppData,
+spec = groupSpec,
+constraints = groupConstraints)
+print(groupFrontier)
+#画个�?groupSpec <- portfolioSpec()
+setNFrontierPoints(groupSpec) <-25
+groupFrontier <- portfolioFrontier(data = lppData, spec = groupSpec, constraints = groupConstraints)
+tailoredFrontierPlot(object = groupFrontier, mText = 'MV portfolio',risk = 'Cov')
+a <-1
+b<-2
+if(a>2) {c=2}
+c<-function(x , y){
+d= x+y
+}
+c(a,b)
+c
+c(1,2)
+d
+d
+d
+d
+d
+d
+dd
+help.start()
+help.start()
+help.start()
+help.start()
+help('help.search')
+help('apropos')
+demo(scoping)
+install.packages('quantmod')
+install.packages("FinancialInstrument")
+??rollapply
+install.packages('quantstrat')
+q()
+install.packages('quantstrat')
+setRepositories()
+utils:::menuInstallPkgs()
+setRepositories()
+utils:::menuInstallPkgs()
+install.packages('quantstrat')
+q()
+library(quantmod)
+getSymbols('AAPL')
+dim(APPL)
+head();tail()
+chartSeries(APPL,theme = 'white')
+chartSeries(AAPL,theme = 'white')
+chartSeries(AAPL)
+getSymbols('UNRATE',src = 'FRED')
+getSymbols('INTC',src = 'google')
+getSymbols('INTC',src = 'google')
+getSymbols('^TNX')
+setwd("G:/典藏/f")
+library(fbasic0)
+library(fBasics)
+install.packages('fBasics')
+library(fBasics)
+da <- read.table('d-ibm-0110.txt',header = T)
+head(da)
+library(quantmod)
+dim(da)
+da <- read.csv('d-vix0411.csv',header = T)
+da <- read.csv('d-vix0411.csv',header = T)
+par(mfrow = c(2,2))
+getSymbols('AAPL', from = '2007-01-03', to = '2011-11-12')
+AAPL.rtn <- diff(log(AAPL$AAPL.Adjusted))
+chartSeries(AAPL.rtn)
+getSymbols('^TNX', from = '2007-01-03', to= '2011-12-02')
+TNX.rtn <- diff(log(TNX$TNX.Adjusted))
+chartSeries(TNX.rtn,theme = 'white')
+getSymbols('DEXUSEU',src = 'FRED')
+head(DEXUSEU)
+USEU.rtn <- diff(log(DEXUSEU$DEXUSEU))
+chartSeries(DEXUSEU,theme = 'white')
+chartSeries(USEU.rtn,theme =  'white')
+par(mfrow = c(1,1))
+par(mfrow = c(2,2))
+chartSeries(AAPL.rtn)
+TNX.rtn <- diff(log(TNX$TNX.Adjusted))
+da <- read.table('d-mmm-0111.txt',header = T)
+head(da)
+mmm <- da[,2]
+basicStats(mmm)
+library(fBasics)
+da <-read.table('d-mm-0111.txt',header = T)
+mmm <-da[,2]
+hist(mmm,nclass = 30)
+d1 <-density(mmm)
+range(mmm)
+x <- seq(-.1,.1,.001)
+y1 <- dnorm(x,mean(mmm),stdev(mmm))
+plot(d1$x,d1$y,xlab = 'rtn', ylab = 'density', type='l')
+lines(x,y1,lty=2)
+# ohlc plot
+library(quantmod)
+getSymbols('AAPL', from = '2011-01-03', to = '2011-06-30')
+X = AAPL[, 1:4]
+xx <- cbind(as.numeric(X[,1]), as.numeric(X[,2]),as.numeric(X[,3]),
+as.numeric(X[,4]))
+source('ohlc.R')
+ohlc(xx.x1 = days,y1 = 'price',title= 'Apple Stock')
+source('ohlc.R')
+ohlc_plot(xx.x1 = days,y1 = 'price',title= 'Apple Stock')
+ohlc_plot(xx.x1 = 'days',y1 = 'price',title= 'Apple Stock')
+ohlc_plot(xx,x1 = 'days',y1 = 'price',title= 'Apple Stock')
+ohlc_plot(xx,x1 = 'days',y1 = 'price',title= 'Apple Stock')
+ohlc_plot(xx,x1 = 'days',y1 = 'price',title= 'Apple Stock')
+ohlc_plot(xx)
+ohlc_plot(xx,xl = 'days', yl ='price' , title = 'Apple Stock')
+source('ma.R')
+getSymbols('AAPL', from = '2010-01-02',to= '2011-12-08')
+plot(ma)
+x1 <- as.numeric(AAPL$AAPL.Close)
+x1 <- as.numeric(AAPL$AAPL.Close)
+x1 <- as.numeric(AAPL$AAPL.Close)
+ma(x1 ,21)
+da <- read.table('m-ibmsp-2611.txt',header = T)
+ibm <- log(da$ibm+1)
+sp <- log(da$sp + 1)
+tdx <- c(1:nrow(da))/12 + 1926 # Create time index
+par(mfcol = c(2,1))
+plot(tdx,ibm,xlab = 'yeat', ylab = 'Irtn', type= 'l')
+title(main = '(a) IBM returns')
+plot(tdx,sp,xlab = 'year',ylab = 'lrtn', type = 'l')
+title(main = '(b) SP index')
+cor(ibm, sp)
+m1 <- lm(ibm~sp)
+summary(m1)
+par(mfrow=c(1,1))
+plot(sp,ibm,cex = 0.8)
+abline(.008,.807)
+dim(da)
+ibm <-log(da$ibm +1) # compute log returns
+sp <- log(da$sp + 1)
+rt <- cbind(ibm,sp)
+m1 <- apply(r2, 2, mean)
+v1 <- cov(rt)
+library(mnormt)
+x <- rmnorm(1029, mean = m1 ,varcov = v1)
+install.packages('mnormt')
+library(mnormt)
+x <- rmnorm(1029, mean = m1 ,varcov = v1)
+m1
+m1 <- apply(rt, 2, mean)
+x <- rmnorm(1029, mean = m1 ,varcov = v1)
+plot(x[,2],x[,1],xlab = 'sim-sp', ylab = 'sim-ibm',cex=0.8)
+da <- read.table('m-dec12910.txt',header = T)
+head(da)
+d10 <- da$dec10
+dec10 <- ts(d10,frequency = 12,start = c(1967,1))
+head(dec10)
+plot(dec10,xlab = 'yeat', ylab = 'returns')
+par(mfcol = c(2,1))
+plot(dec10,xlab = 'yeat', ylab = 'returns')
+title(main='(a): simple returns')
+acf(d10,lag=24)
+f1 <- acf(d10,lag=24)
+f1$acf
+da <- read.table('m-ibmsp6709.txt', header = T)
+ibm <- da$ibm
+lnibm <- log(ibm + 1) #transfer to log returns
+Box.test(ibm, lag = 12, type = 'Ljung')
+Box.test(lnibm,lag = 12, type = 'Ljung')
+da <- read.table('q-gnp4710.txt', header = T)
+head(da)
+G<-da$VALUE
+LG <- log(G)
+gnp <- diff(LG)
+tdx<-c(1:253)/4 + 1947 #creat the time index
+par(mfcol=c(2,1))
+plot(tdx,LG,xlab = 'year', ylab = 'GNP', type = 'l')
+acf(gnp,lag = 12)
+acf(gnp,lag = 12)
+pacf(gnp, lag = 12) #compute pacf
+m1 <- arima(gnp,order = c(3,0,0))
+tsdiag(m1,gof=12)
+mm1 <- ar(gnp,method = 'mle')
+mm1$order
+names(mm1)
+print(mm1$aic,digits =3)
+vw <- read.table('m-ibm3dx.txt', header = T)[,3]
+vw <- read.table('m-ibm3dx2608.txt', header = T)[,3]
+t1 <- prod(vw + 1)
+t1^(12/996)-1
+vw <- read.table('m-ibm3dx2608.txt',header = T)[,3]
+m3 <- arima(vw,order = c(3,0,0))
+m3
+vw <- read.table('m-ibm3dx2608.txt',header = T)[,3]
+m3 <- arima(vw,order = c(3,0,0))
+(1 - .1158 + .0187 + .1042)*mean(vw) #compute the intercept phi
+sqrt(m3$sigma2)  #Compute standard error of residuals
+Box.test(m3$residuals,lag = 12,type = 'Ljung')
+pv <- 1 - pchisq(16.35,9)
+m3 <- arima(vw,order = c(3,0,0), fixed = c(NA,0,NA,NA))  #to fix the AR(2) coefficient to zero
+（1-.1136+.1063）*.0089
+sqrt(m3$sigma2)
+Box.test(m3$residuals,lag = 12, type = 'Ljung')
+pv = 1-pchsiq(16.83,10)
+pv = 1-pchisq(16.83,10)
