@@ -1,0 +1,595 @@
+
+    
+     
+Sub main()
+
+    Dim path As String
+    Dim path_tcall As String
+    Dim path_icall As String
+    Dim path_ptp As String
+    Dim path_yrd As String
+    
+    Dim i As Long
+    Dim j As Long
+    Dim row As Long
+    Dim rowlong As Long
+    
+    Dim path_core1, path_core2 As String
+    Dim date1, date2, date3, date4 As String
+    Dim date5 As String
+
+    Dim book_main As String
+    Dim book_core1 As String
+    Dim book_core2 As String
+    Dim book_yrd As String
+    
+    Dim workstation As String
+    
+    
+    go = MsgBox("请检查输入的参数是否正确？", vbYesNo, "检查参数")
+    If go = vbNo Then Exit Sub
+    
+    Workbooks("runrun.xlsm").Activate
+    Worksheets("输入").Select
+    
+    path_tcall = "F:\auto\output\total_call.csv"
+    path_icall = "F:\auto\output\invalid_call.csv"
+    path_ptp = "F:\auto\output\ptp.csv"
+    
+    workstation = Range("b7").Value '"F:\日报_inbound\something\copy\"
+    book_main = Range("b17").Value '"Inbound日报201711.xlsx"
+    book_core1 = Range("b18").Value '"20171116滚动情况.xlsx"
+    book_core2 = Range("b19").Value '"20171116滚动情况江湖.xlsx"
+    book_yrd = Range("b20").Value '"20171116宜人贷回款信息资产日报版.xls"
+    
+    
+    path = workstation & book_main
+    path_yrd = workstation & book_yrd
+    path_core1 = workstation & book_core1
+    path_core2 = workstation & book_core2
+    
+    'ptp认为的回款日期
+     date1 = Range("f17").Value
+     date2 = Range("f18").Value
+     date3 = Range("f19").Value
+     date4 = Range("f20").Value
+     
+    '真正的回款
+     date5 = Range("g17").Value
+     
+    Application.ScreenUpdating = True
+    Call see(path, book_main)
+    Call phone(path_tcall, path_icall, book_main)
+    Call ptp(path_ptp, book_main)
+    
+    Call tidycore(path_core1, path_core2, book_core1, book_core2, book_main, date1, date2, date3, date4)
+    Call payback_core(book_core1, book_main)
+    Call payback_yrd(book_core1, path_yrd, book_main, book_yrd)
+    Call detail(book_main, date5)
+    Call result(book_main, date5)
+    Application.ScreenUpdating = True
+
+End Sub
+
+
+Public Sub see(path As String, book_main As String)
+'
+' 打开隐藏的工作表,去掉筛选
+'
+'变量 - 只有每个月文件名称 inbound日报201712...
+    
+    Application.Workbooks.Open (path)
+    Workbooks(book_main).Activate
+    Sheets("电话量统计").Visible = True
+    Sheets("PTP").Visible = True
+    Sheets("KP").Visible = True
+    Sheets("新核心回款汇总").Visible = True
+    Sheets("新核心回款汇总").Select
+    Sheets("新核心回款汇总").Range("C3").Select
+    Selection.AutoFilter
+    Sheets("电话量统计").Select
+End Sub
+
+Sub phone(path_tcall, path_icall, book_main As String)
+'  当有人员加入的时候需要调节填充的行数
+'  当有周末的时候手动填充为0
+'
+'  变量 - 已经被命名
+    ' 打开相关的工作表
+ 
+    
+    Application.Workbooks.Open (path_tcall)
+    Application.Workbooks.Open (path_icall)
+
+    Workbooks(book_main).Activate
+    Sheets("电话量统计").Select
+    Range("C24").Select
+
+    i = Sheets("电话量统计").Range("C24").End(xlToRight).Column
+    Cells(24, i + 1).Select
+    ActiveCell.FormulaR1C1 = "=VLOOKUP(RC[-" & i - 4 & "],total_call.csv!C1:C4,2,0)"
+    
+    Cells(24, i + 2).Select
+    ActiveCell.FormulaR1C1 = "=VLOOKUP(RC[-" & i - 3 & "],total_call.csv!C1:C4,3,0)"
+    
+    Cells(24, i + 3).Select
+    ActiveCell.FormulaR1C1 = "=VLOOKUP(RC[-" & i - 2 & "],total_call.csv!C1:C4,4,0)"
+    
+    Range(Cells(24, i + 1), Cells(24, i + 3)).Select
+    Selection.AutoFill Destination:=Range(Cells(24, i + 1), Cells(35, i + 3))
+    
+    
+    
+    i = Sheets("电话量统计").Range("C41").End(xlToRight).Column
+    Cells(41, i + 1).Select
+    ActiveCell.FormulaR1C1 = "=VLOOKUP(RC[-" & i - 4 & "],invalid_call.csv!C1:C2,2,0)"
+    Cells(41, i + 1).Select
+    Selection.AutoFill Destination:=Range(Cells(41, i + 1), Cells(52, i + 1))
+    Range(Cells(41, i + 1), Cells(52, i + 1)).Select
+    Selection.Copy
+    
+    Cells(41, i + 3).Select
+    Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+        :=False, Transpose:=False
+    Application.CutCopyMode = False
+    
+    '一共48-38+1个人
+    Cells(41, i + 2).Value = 0
+    Cells(42, i + 2).Value = 0
+    Cells(43, i + 2).Value = 0
+    Cells(44, i + 2).Value = 0
+    Cells(45, i + 2).Value = 0
+    Cells(46, i + 2).Value = 0
+    Cells(47, i + 2).Value = 0
+    Cells(48, i + 2).Value = 0
+    Cells(49, i + 2).Value = 0
+    Cells(50, i + 2).Value = 0
+    Cells(51, i + 2).Value = 0
+    Cells(52, i + 2).Value = 0
+    
+    Workbooks("total_call.csv").Close savechanges:=False
+    Workbooks("invalid_call.csv").Close savechanges:=False
+End Sub
+
+
+
+Sub ptp(path_ptp, book_main As String)
+'
+' 宏3 宏
+'aa
+
+'
+    book_main = "Inbound日报201711.xlsx"
+
+    Application.Workbooks.Open (path_ptp)
+    
+    Windows("ptp.csv").Activate
+    
+    '可以简化为CURRENTRANGE
+    Range("A2").Select
+    Range(Selection, Selection.End(xlDown)).Select
+    Range(Selection, Selection.End(xlToRight)).Select
+    Selection.Copy
+    
+    '复制在两个表下面
+    Windows(book_main).Activate
+    Sheets("PTP").Select
+
+
+    i = Range("A1").End(xlDown).row
+    Cells(i + 1, 1).Select
+    ActiveSheet.Paste
+    
+    
+    Sheets("KP").Select
+    i = Range("A1").End(xlDown).row
+    
+    Cells(i + 1, 1).Select
+    ActiveSheet.Paste
+    
+    j = Range("A1").End(xlDown).row
+    
+    Cells(i, 12).Select
+    Range(Selection, Selection.End(xlToRight)).Select
+    Selection.AutoFill Destination:=Range(Cells(i, 12), Cells(j, 18))
+    Range("L3481:R3763").Select
+    
+    Sheets("KP").AutoFilterMode = False
+    
+    Columns("A:I").Select
+    Workbooks(book_main).Worksheets("KP").Sort.SortFields.Clear
+    Workbooks(book_main).Worksheets("KP").Sort.SortFields.Add Key:=Range("A2:A9875"), _
+        SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
+    Workbooks(book_main).Worksheets("KP").Sort.SortFields.Add Key:=Range("E2:E9875"), _
+        SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
+    Workbooks(book_main).Worksheets("KP").Sort.SortFields.Add Key:=Range("D2:D9875"), _
+        SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
+    Workbooks(book_main).Worksheets("KP").Sort.SortFields.Add Key:=Range("G2:G9875"), _
+        SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
+    
+    
+    With Workbooks(book_main).Worksheets("KP").Sort
+        .SetRange Range("A1:I9875")
+        .Header = xlYes
+        .MatchCase = False
+        .Orientation = xlTopToBottom
+        .SortMethod = xlPinYin
+        .Apply
+    End With
+   
+    
+    Application.Calculate
+    
+    
+    Range("O13").Select
+    Selection.AutoFilter
+    
+    '--- 删除为0的并且重新计算
+    ActiveSheet.Range(Cells(1, 1), Cells(j, 18)).AutoFilter Field:=18, Criteria1:="0"
+    ActiveSheet.Range(Cells(2, 1), Cells(j, 18)).EntireRow.SpecialCells(xlVisible).Delete
+ 
+    Range("D3772").Select
+    Selection.AutoFilter
+    
+    j = Range("A1").End(xlDown).row
+    Range("L2").Select
+    Range(Selection, Selection.End(xlToRight)).Select
+    Selection.AutoFill Destination:=Range(Cells(2, 12), Cells(j, 18))
+    Range("L2:R3761").Select
+    Range("N17").Select
+    Application.Calculate
+    
+    Workbooks("ptp.csv").Close savechanges:=False
+End Sub
+
+
+Sub tidycore(path_core1, path_core2, book_core1, book_core2, book_main, date1, date2, date3, date4 As String)
+'
+' 合并两个数据薄核心
+'
+
+'
+     
+     Application.Workbooks.Open (path_core1)
+     Application.Workbooks.Open (path_core2)
+     
+    Windows(book_core2).Activate
+    Range("B2").Select
+    i = Range("B1").End(xlDown).row
+    Range(Cells(2, 2), Cells(i, 18)).Select
+    Selection.Copy
+    '为什么不直接copy去呢,,,
+    
+    Windows(book_core1).Activate
+    Sheets("SQL Results").Select
+    i = Range("B1").End(xlDown).row
+    Cells(i + 1, 2).Select
+    ActiveSheet.Paste
+    
+    '--- 分列B,C两列 ---
+    Columns("B:B").Select
+    Application.CutCopyMode = False
+    Selection.TextToColumns Destination:=Range("B1"), DataType:=xlDelimited, _
+        TextQualifier:=xlDoubleQuote, ConsecutiveDelimiter:=False, Tab:=True, _
+        Semicolon:=False, Comma:=False, Space:=False, Other:=False, FieldInfo _
+        :=Array(1, 1), TrailingMinusNumbers:=True
+    Columns("C:C").Select
+    Selection.TextToColumns Destination:=Range("C1"), DataType:=xlDelimited, _
+        TextQualifier:=xlDoubleQuote, ConsecutiveDelimiter:=False, Tab:=True, _
+        Semicolon:=False, Comma:=False, Space:=False, Other:=False, FieldInfo _
+        :=Array(1, 1), TrailingMinusNumbers:=True
+        
+        
+    Windows(book_main).Activate
+   
+    row = Range("a1").End(xlDown).row
+    
+    Range("E7").Select
+    Selection.AutoFilter
+    
+    '--- 这里的参数没有加入进去 ---
+    ActiveSheet.Range(Cells(1, 1), Cells(row, 18)).AutoFilter Field:=7, Operator:= _
+        xlFilterValues, Criteria2:=Array(2, date1, 2, date2, 2, date3 _
+        , 2, date4)
+        
+    ActiveSheet.Range(Cells(2, 1), Cells(row, 1)).SpecialCells(xlVisible).Select
+    
+    Selection.Copy
+    
+    '--- 复制在后面 ---
+    Windows(book_core1).Activate
+    Sheets.Add(After:=ActiveSheet).Name = "Sheet1"
+    Sheets("Sheet1").Select
+    ActiveSheet.Paste
+    
+    Workbooks(book_core2).Close savechanges:=False
+    Windows(book_main).Activate
+    
+    
+End Sub
+
+
+Sub payback_core(book_core1, book_main As String)
+'
+' 把核心系统的进行加入到 新核心回款汇总的最后面，同时把期数变为了M+等
+'
+
+'
+' --- 满足两个条件 ---'
+    Workbooks(book_core1).Activate
+    Range("F18").Select
+    Sheets("SQL Results").Select
+    Range("S2").Select
+    ActiveCell.FormulaR1C1 = "=RC[-13]-RC[-14]"
+    Range("T2").Select
+    ActiveCell.FormulaR1C1 = "=VLOOKUP(RC[-18],Sheet1!C[-19],1,0)"
+    Range("S2:T2").Select
+    
+    row = Range("b1").End(xlDown).row
+    Selection.AutoFill Destination:=Range(Cells(2, 19), Cells(row, 20))
+    Application.Calculate
+    
+    
+    Range("T5").Select
+    Selection.AutoFilter
+    
+    ActiveSheet.Range(Cells(1, 1), Cells(row, 20)).AutoFilter Field:=20, Criteria1:="<>#N/A", Operator:=xlFilterValues
+    ActiveSheet.Range(Cells(1, 1), Cells(row, 20)).AutoFilter Field:=19, Criteria1:="<>1", Operator:=xlFilterValues
+    ActiveSheet.Range(Cells(2, 2), Cells(row, 14)).SpecialCells(xlVisible).Select
+    Selection.Copy
+    
+    Windows(book_main).Activate
+    Sheets("新核心回款汇总").Select
+    row = Range("b1").End(xlDown).row
+    Cells(row + 1, 2).Select
+    ActiveSheet.Paste
+    
+    Cells(row + 1, 15).Select
+    ActiveCell.FormulaR1C1 = "=""M""&RC[-1]"
+
+    j = Range("b2").End(xlDown).row
+    
+    Cells(row + 1, 15).Select
+    
+    ActiveWindow.SmallScroll Down:=12
+    Selection.AutoFill Destination:=Range(Cells(row + 1, 15), Cells(j, 15))
+    
+    Range(Cells(row + 1, 15), Cells(j, 15)).Select
+    Selection.Copy
+    
+    Cells(row + 1, 14).Select
+    Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+        :=False, Transpose:=False
+        
+    Cells(row + 1, 15).Select
+    Range(Selection, Selection.End(xlDown)).Select
+    Application.CutCopyMode = False
+    Selection.ClearContents
+    
+    j = Range("b2").End(xlDown).row
+    row = Range("a1").End(xlDown).row
+    Cells(row, 1).AutoFill Destination:=Range(Cells(row, 1), Cells(j, 1))
+    
+End Sub
+
+
+Sub payback_yrd(book_core1, path_yrd, book_main, book_yrd As String)
+'
+' 宏4 宏
+'
+
+    Application.Workbooks.Open (path_yrd)
+    
+    Windows(book_core1).Activate
+    Sheets("Sheet1").Select
+
+    row = Range("a1").End(xlDown).row
+    Range(Cells(1, 1), Cells(row, 1)).Select
+    Selection.Copy
+     
+    Windows(book_yrd).Activate
+    Sheets.Add(After:=ActiveSheet).Name = "Sheet2"
+    Sheets("Sheet2").Select
+    ActiveSheet.Paste
+        
+    Sheets("sheet1").Select
+    Range("G2").Select
+    Application.CutCopyMode = False
+    ActiveCell.FormulaR1C1 = "=RC[-2]-RC[-3]"
+    Range("H2").Select
+    ActiveCell.FormulaR1C1 = "=VLOOKUP(RC[-6],Sheet2!C[-7],1,0)"
+    
+    row = Range("a1").End(xlDown).row
+    Range("G2:H2").Select
+    Selection.AutoFill Destination:=Range("G2:H" & row)
+    Range("G2:H" & row).Select
+    
+    Range("E18").Select
+    Selection.AutoFilter
+    ActiveSheet.Range("$A$1:$H$3772").AutoFilter Field:=8, Criteria1:="<>#N/A", Operator:=xlFilterValues
+    ActiveSheet.Range("$A$1:$H$3772").AutoFilter Field:=7, Criteria1:="<>1", Operator:=xlFilterValues
+    Application.Calculate
+
+    ActiveSheet.Range(Cells(2, 2), Cells(row, 6)).SpecialCells(xlVisible).Select
+    Selection.Copy
+    
+    Windows(book_main).Activate
+    row = Range("b1").End(xlDown).row
+    
+    '这个应该可以跟简单点，对不起懒
+    Cells(row + 1, 3).Select
+    ActiveSheet.Paste
+    Cells(row + 1, 3).Select
+    Range(Selection, Selection.End(xlDown)).Select
+    Application.CutCopyMode = False
+    Selection.Copy
+    Cells(row + 1, 2).Select
+    ActiveSheet.Paste
+    
+    Cells(row + 1, 4).Select
+    Range(Selection, Selection.End(xlDown)).Select
+    Application.CutCopyMode = False
+    Selection.Copy
+    Cells(row + 1, 13).Select
+    ActiveSheet.Paste
+    
+    Cells(row + 1, 7).Select
+    Range(Selection, Selection.End(xlDown)).Select
+    Application.CutCopyMode = False
+    Selection.Copy
+    Cells(row + 1, 14).Select
+    ActiveSheet.Paste
+    
+    '-- 第一行填充--'
+    j = Range("b2").End(xlDown).row
+    row = Range("a1").End(xlDown).row
+    Cells(row, 1).AutoFill Destination:=Range(Cells(row, 1), Cells(j, 1))
+    
+    Range(Cells(row - 1, 9), Cells(row, 9)).Select
+    Selection.AutoFill Destination:=Range(Cells(row - 1, 9), Cells(j, 9))
+    
+    '-- 日期分列 --'
+    Columns("I:I").Select
+    Selection.TextToColumns Destination:=Range("I1"), DataType:=xlDelimited, _
+        TextQualifier:=xlDoubleQuote, ConsecutiveDelimiter:=False, Tab:=True, _
+        Semicolon:=False, Comma:=False, Space:=False, Other:=False, FieldInfo _
+        :=Array(1, 1), TrailingMinusNumbers:=True
+        
+    '-- 不保存关闭文档 --'
+    Windows(book_core1).Close savechanges:=False
+    Windows(book_yrd).Close savechanges:=False
+End Sub
+
+
+Sub detail(book_main, date5 As String)
+' 将还款粘贴到还款明细sheets中
+' 宏5 宏
+'
+
+'
+
+    Windows(book_main).Activate
+    Sheets("KP").Select
+    Range("J62").Select
+    
+    '-- 去除规则 --
+    Selection.AutoFilter
+    Selection.AutoFilter
+    
+    row = Range("a1").End(xlDown).row
+    
+    '-- 这里参数没有设定好 --
+    ActiveSheet.Range(Cells(1, 1), Cells(row, 18)).AutoFilter Field:=12, Operator:= _
+        xlFilterValues, Criteria2:=Array(2, date5)
+    ActiveSheet.Range(Cells(1, 1), Cells(row, 18)).AutoFilter Field:=13, Criteria1:="KP"
+    ActiveSheet.Range(Cells(2, 1), Cells(row, 9)).SpecialCells(xlVisible).Select
+    Selection.Copy
+    
+    Sheets("还款明细").Select
+    
+    row = Range("b1").End(xlDown).row
+    Cells(row + 1, 2).Select
+    ActiveSheet.Paste
+    
+End Sub
+
+Sub result(book_main, date5 As String)
+'
+' 宏6 宏
+'
+
+'
+
+    Sheets("新核心回款汇总").Select
+    Range("H2368").Select
+    Selection.AutoFilter
+       
+    row = Range("b2").End(xlDown).row
+    
+    '--- 筛选出来还款日期的 ---'
+    ActiveSheet.Range(Cells(1, 1), Cells(row, 14)).AutoFilter Field:=9, Operator:= _
+        xlFilterValues, Criteria2:=Array(2, date5)
+    ActiveSheet.Range(Cells(1, 1), Cells(row, 14)).SpecialCells(xlVisible).Select
+    Selection.Copy
+    Sheets.Add(After:=ActiveSheet).Name = "Sheet1"
+    Sheets("Sheet1").Select
+    ActiveSheet.Paste
+    
+    Sheets("还款明细").Select
+    row = Range("K2").End(xlDown).row
+    
+    Cells(row + 1, 11).Select
+    Application.CutCopyMode = False
+    ActiveCell.FormulaR1C1 = "=VLOOKUP(RC[-9],Sheet1!C2:C14,3,0)"
+    
+    Cells(row + 1, 12).Select
+    
+    ActiveCell.FormulaR1C1 = "=VLOOKUP(RC[-10],Sheet1!C2:C14,12,0)"
+    
+    rowlong = Range("b2").End(xlDown).row
+    Range(Cells(row + 1, 11), Cells(row + 1, 12)).Select
+    Selection.AutoFill Destination:=Range(Cells(row + 1, 11), Cells(rowlong, 12))
+    Application.Calculate
+    
+    
+    Range(Cells(row + 1, 11), Cells(rowlong, 12)).Select
+    Selection.Copy
+    Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+        :=False, Transpose:=False
+    Application.CutCopyMode = False
+    
+     Range("A" & row).Select
+    Selection.AutoFill Destination:=Range(Cells(row, 1), Cells(row + 1, 1)), Type:=xlFillDefault
+    Range("A2362:A2363").Select
+    Cells(row + 1, 1).Select
+    Selection.Copy
+    Cells(row + 2, 1).Select
+    ActiveSheet.Paste
+    
+    Range(Cells(row + 1, 1), Cells(row + 2, 1)).Select
+    Application.CutCopyMode = False
+    Selection.AutoFill Destination:=Range(Cells(row + 1, 1), Cells(rowlong, 1))
+   
+   For i = row To rowlong - 2 Step 1
+        If Cells(i + 1, 2).Value = Cells(i + 2, 2).Value Then
+            If Cells(i + 1, 9).Value > Cells(i + 2, 9).Value Then
+                Cells(i + 1, 13).Value = "无效"
+            Else: Cells(i + 2, 13).Value = "无效"
+            End If
+        End If
+    Next i
+    Application.DisplayAlerts = False
+    Sheets("Sheet1").Delete
+    
+    Workbooks(book_main).RefreshAll
+    
+    '--- 前面少一个刷新 ---'
+    ActiveSheet.PivotTables("数据透视表3").PivotFields("还款日期").ClearAllFilters
+    ActiveSheet.PivotTables("数据透视表3").PivotFields("还款日期").CurrentPage = date5
+    
+    Sheets("新核心回款汇总").Select
+    Selection.AutoFilter
+    
+    Sheets("新核心回款汇总").Visible = False
+    Sheets("PTP").Visible = False
+    Sheets("KP").Visible = False
+    Sheets("电话量统计").Visible = False
+    
+    
+    '--- 断开连接 ---'
+      Range("AV27").Select
+    ActiveWorkbook.BreakLink Name:="F:\auto\output\invalid_call.csv", Type:= _
+        xlExcelLinks
+    ActiveWorkbook.BreakLink Name:="F:\auto\output\total_call.csv", Type:= _
+        xlExcelLinks
+        
+    Sheets("日报页").Select
+    Range("f2").Select
+    
+    Windows(book_main).Close savechanges:=True
+    
+End Sub
+
+
+
+
