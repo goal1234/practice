@@ -1,0 +1,77 @@
+# 1-Machine learning algorithms
+---
+
+Function name 	Description
+rxFastTrees 	An implementation of FastRank, an efficient implementation of the MART gradient boosting algorithm.
+rxFastForest 	A random forest and Quantile regression forest implementation using rxFastTrees.
+rxLogisticRegression 	Logistic regression using L-BFGS.
+rxOneClassSvm 	One class support vector machines.
+rxNeuralNet 	Binary, multi-class, and regression neural net.
+rxFastLinear 	Stochastic dual coordinate ascent optimization for linear binary classification and regression.
+rxEnsemble 	Trains a number of models of various kinds to obtain better predictive performance than could be obtained from a single model.
+
+
+# 2-Transformation functions
+---
+
+Function name 	Description
+concat 		Transformation to create a single vector-valued column from multiple columns.
+categorical 	Create indicator vector using categorical transform with dictionary.
+categoricalHash 	Converts the categorical value into an indicator array by hashing.
+featurizeText 	Produces a bag of counts of sequences of consecutive words, called n-grams, from a given corpus of text. It offers language detection, tokenization, stopwords removing, text normalization and feature generation.
+getSentiment 	Scores natural language text and creates a column that contains probabilities that the sentiments in the text are positive.
+ngram 	allows defining arguments for count-based and hash-based feature extraction.
+selectColumns 	Selects a set of columns to retrain, dropping all others.
+selectFeatures 	Selects features from the specified variables using a specified mode.
+loadImage 	Loads image data.
+resizeImage 	Resizes an image to a specified dimension using a specified resizing method.
+extractPixels 	Extracts the pixel values from an image.
+featurizeImage 	Featurizes an image using a pre-trained deep neural network model.
+
+# 3-Scoring and training functions
+---
+
+Function name 	Description
+rxPredict.mlModel 	Runs the scoring library either from SQL Server, using the stored procedure, or from R code enabling real-time scoring to provide much faster prediction performance.
+rxFeaturize 	Transforms data from an input data set to an output data set.
+mlModel 	Provides a summary of a Microsoft R Machine Learning model.
+
+# 4-Loss functions for classification and regression
+---
+
+Function name 	Description
+expLoss 	Specifications for exponential classification loss function.
+logLoss 	Specifications for log classification loss function.
+hingeLoss 	Specifications for hinge classification loss function.
+smoothHingeLoss 	Specifications for smooth hinge classification loss function.
+poissonLoss 	Specifications for poisson regression loss function.
+squaredLoss 	Specifications for squared regression loss function.
+
+# 5-Feature selection functions
+---
+
+Function name 	Description
+minCount 	Specification for feature selection in count mode.
+mutualInformation 	Specification for feature selection in mutual information mode.
+
+# 6-Ensemble modeling functions
+---
+
+Function name 	Description
+fastTrees 	Creates a list containing the function name and arguments to train a Fast Tree model with rxEnsemble.
+fastForest 	Creates a list containing the function name and arguments to train a Fast Forest model with rxEnsemble.
+fastLinear 	Creates a list containing the function name and arguments to train a Fast Linear model with rxEnsemble.
+logisticRegression 	Creates a list containing the function name and arguments to train a Logistic Regression model with rxEnsemble.
+oneClassSvm 	Creates a list containing the function name and arguments to train a OneClassSvm model with rxEnsemble.
+
+# 7-Neural networking functions
+---
+
+Function name 	Description
+optimizer 	Specifies optimization algorithms for the rxNeuralNet machine learning algorithm.
+
+# 8-Package state functions
+---
+
+Function name 	Description
+rxHashEnv 	An environment object used to store package-wide state.
