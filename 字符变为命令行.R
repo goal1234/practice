@@ -18,3 +18,10 @@ for(i in 1:100) {
   eval(parse(text = line))
 }
 
+for(i in 1:100) {
+  print(i)
+  a <- try(lm(y~.,data = df), silent = T)
+  a
+  if ('try-error' %in% class(a)) next
+  
+}
